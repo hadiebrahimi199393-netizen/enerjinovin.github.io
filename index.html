@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>گروه آموزشی انرژی نوین | EnergyNovin</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Persian Font: Vazirmatn -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Vazirmatn', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb', // Primary brand color
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        },
+                        accent: {
+                            500: '#10b981', // Success/Green
+                            600: '#059669',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; background-color: #f8fafc; }
+        /* Smooth fade in */
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Math styling */
+        .math-text { direction: ltr; display: inline-block; font-family: 'Times New Roman', serif; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // ==========================================
+        // 🔹 ICONS (Inline SVG to fix render error)
+        // ==========================================
+        const Icons = {
+            BookOpen: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
+            ChevronLeft: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>,
+            CheckCircle: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>,
+            Play: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>,
+            LayoutDashboard: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>,
+            LogOut: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>,
+            ShoppingCart: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>,
+            User: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+            Menu: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>,
+            X: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 18 18"/></svg>,
+            GraduationCap: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>,
+            Calculator: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>,
+            Eye: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>,
+            Layers: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12.83 2.44 9.8 5.7a1 1 0 0 1 0 1.74l-9.8 5.7a1 1 0 0 1-1.02 0l-9.8-5.7a1 1 0 0 1 0-1.74l9.8-5.7a1 1 0 0 1 1.02 0Z"/><path d="m22 10-9 5.25a1 1 0 0 1-1.12 0L2 10"/><path d="m22 14-9 5.25a1 1 0 0 1-1.12 0L2 14"/></svg>
+        };
+
+        const { 
+            BookOpen, ChevronLeft, CheckCircle, Play, 
+            LayoutDashboard, LogOut, ShoppingCart, User, 
+            Menu, X, GraduationCap, Calculator, Eye, Layers
+        } = Icons;
+
+        // ==========================================
+        // 🔹 DATA & CONFIG
+        // ==========================================
+        
+        const siteConfig = {
+            brandNameFa: "گروه آموزشی انرژی نوین",
+            brandNameEn: "EnergyNovin",
+            heroTitle: "آمادگی امتحان نهایی و کنکور",
+            heroSubtitle: "جزوه، آزمون و کلاس‌های آنلاین برای دهم تا کنکور",
+        };
+
+        // Mock Data based on User Prompt
+        const COURSES = [
+            { id: 'math3', title: 'ریاضی ۳ (دوازدهم تجربی)', icon: <Calculator className="w-6 h-6"/>, grade: '12-tajrobi' },
+        ];
+
+        const CHAPTERS = [
+            { 
+                id: 'ch_func', 
+                title: 'فصل ۱: تابع', 
+                description: 'شامل انتقال نمودار، یکنوایی و توابع مرکب',
+                lessons: [
+                    {
+                        id: 'l_transform',
+                        title: 'بخش چهارم: انتقال نمودار توابع',
+                        conceptImage: 'transform_svg', 
+                        conceptSummary: 'تغییرات داخل پرانتز برعکس و روی x، تغییرات بیرون مستقیم و روی y.',
+                        steps: [
+                            { title: 'تحلیل فرمول', text: 'عبارت f(x-a) به معنای انتقال افقی به اندازه a واحد است.' },
+                            { title: 'داخل پرانتز', text: 'اگر x-2 داریم، یعنی ۲ واحد به راست می‌رویم.' },
+                            { title: 'بیرون پرانتز', text: 'اگر -f داریم یعنی قرینه نسبت به محور xها.' },
+                            { title: 'عدد ثابت', text: 'عدد +1 در انتهای تابع یعنی ۱ واحد انتقال به بالا.' }
+                        ]
+                    },
+                    {
+                         id: 'l_monotonicity',
+                         title: 'بخش اول: یکنوایی تابع',
+                         conceptImage: 'chart_svg',
+                         conceptSummary: 'مشتق بگیر -> ریشه یابی کن -> جدول تعیین علامت بکش',
+                         steps: [] // Empty for demo focus on requested Qs
+                    }
+                ],
+                questions: [
+                    {
+                        id: 'q4',
+                        examDate: 'خرداد ۱۴۰۰',
+                        questionText: 'با توجه به نمودار تابع f(x) (فرض کنید یک سهمی با راس (0,0) داده شده)، نمودار تابع g(x) = -f(x-2) + 1 را رسم کنید.',
+                        solutionSteps: [
+                            { title: 'تحلیل انتقالات', content: 'x-2: یعنی انتقال ۲ واحد به راست. -f: یعنی قرینه نسبت به محور xها. +1: یعنی انتقال ۱ واحد به بالا.' },
+                            { title: 'نقطه یابی (راس)', content: 'نقطه (0,0) ابتدا ۲ واحد راست می‌رود -> (2,0). سپس قرینه می‌شود (تغییر نمی‌کند). سپس ۱ واحد بالا می‌رود -> (2,1).' },
+                            { title: 'نقطه یابی (کمکی)', content: 'نقطه (1,1) روی سهمی: ۲ واحد راست -> (3,1). قرینه -> (3,-1). یک واحد بالا -> (3,0).' },
+                            { title: 'نتیجه نهایی', content: 'نمودار جدید یک سهمی رو به پایین است که راس آن در (2,1) قرار دارد.' }
+                        ]
+                    }
+                ]
+            },
+            { 
+                id: 'ch_trig', 
+                title: 'فصل ۲: مثلثات', 
+                description: 'شامل نوسان، دوره تناوب و معادلات',
+                lessons: [
+                    {
+                        id: 'l_graphs',
+                        title: 'بخش پنجم: نمودارهای مثلثاتی',
+                        conceptImage: 'sine_svg',
+                        conceptSummary: 'یافتن ضرایب a, b, c از روی نمودار',
+                        steps: [
+                            { title: 'محاسبه c (محور نوسان)', text: 'c = (Max + Min) / 2' },
+                            { title: 'محاسبه a (دامنه)', text: '|a| = (Max - Min) / 2' },
+                            { title: 'محاسبه b (دوره تناوب)', text: 'T = 2π / |b|' }
+                        ]
+                    },
+                    {
+                        id: 'l_eq',
+                        title: 'بخش ششم: معادلات مثلثاتی',
+                        conceptImage: 'circle_svg',
+                        conceptSummary: 'یکدست کردن کمان‌ها و فرمول‌های کلی',
+                        steps: [
+                            { title: 'هم‌جنس سازی', text: 'استفاده از فرمول cos 2x = 1 - 2sin²x' },
+                            { title: 'تغییر متغیر', text: 'sin x را برابر t فرض کنید و معادله درجه ۲ حل کنید.' },
+                            { title: 'جواب کلی', text: 'x = 2kπ + α و x = 2kπ + π - α' }
+                        ]
+                    }
+                ],
+                questions: [
+                    {
+                        id: 'q5',
+                        examDate: 'خرداد ۱۴۰۲',
+                        questionText: 'نمودار تابع y = a sin(bx) + c در بازه [0, π] داده شده است. ماکزیمم تابع ۳ و مینیمم آن ۱- است. مقادیر a, b, c را بیابید.',
+                        solutionSteps: [
+                            { title: 'یافتن c', content: 'c = (3 + (-1)) / 2 = 1' },
+                            { title: 'یافتن a', content: '|a| = (3 - (-1)) / 2 = 2. چون نمودار صعودی شروع شده، a = 2.' },
+                            { title: 'یافتن b', content: 'طبق نمودار، در بازه π یک نوسان کامل رخ داده، پس T = π. فرمول: T = 2π/|b| => π = 2π/|b| => b = 2.' },
+                            { title: 'ضابطه نهایی', content: 'y = 2 sin(2x) + 1' }
+                        ]
+                    },
+                    {
+                        id: 'q6',
+                        examDate: 'شهریور ۱۴۰۱',
+                        questionText: 'جواب‌های کلی معادله مثلثاتی sin x - cos 2x = 0 را بیابید.',
+                        solutionSteps: [
+                            { title: 'گام اول (هم‌جنس سازی)', content: 'جایگذاری cos 2x با 1 - 2sin²x. معادله می‌شود: sin x - (1 - 2sin²x) = 0 => 2sin²x + sin x - 1 = 0' },
+                            { title: 'گام دوم (حل جبری)', content: 'فرض sin x = t. معادله 2t² + t - 1 = 0. ریشه‌ها: t = -1 و t = 1/2.' },
+                            { title: 'گام سوم (حالت اول)', content: 'sin x = -1 => x = 2kπ - π/2' },
+                            { title: 'گام سوم (حالت دوم)', content: 'sin x = 1/2. دو جواب: 1) x = 2kπ + π/6 و 2) x = 2kπ + 5π/6' }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        // ==========================================
+        // 🔹 SVG VISUALIZATIONS (REPLACING IMAGES)
+        // ==========================================
+
+        const TransformationVisual = () => (
+            <div className="w-full h-48 bg-white rounded-lg border border-slate-200 flex items-center justify-center relative overflow-hidden">
+                <svg viewBox="0 0 200 100" className="w-full h-full">
+                    {/* Grid */}
+                    <line x1="10" y1="90" x2="190" y2="90" stroke="#cbd5e1" strokeWidth="1" />
+                    <line x1="100" y1="10" x2="100" y2="95" stroke="#cbd5e1" strokeWidth="1" />
+                    
+                    {/* Original f(x) - Dashed Blue */}
+                    <path d="M 70 30 Q 100 90 130 30" fill="none" stroke="#3b82f6" strokeWidth="2" strokeDasharray="4" />
+                    <text x="135" y="30" fontSize="8" fill="#3b82f6">f(x)</text>
+                    
+                    {/* Transformed g(x) - Solid Green */}
+                    {/* Shifted right (approx +20px), Inverted (flipped Y), Shifted Up */}
+                    <path d="M 100 60 Q 130 0 160 60" fill="none" stroke="#10b981" strokeWidth="2" />
+                    <text x="165" y="60" fontSize="8" fill="#10b981">g(x)</text>
+                    
+                    {/* Vector Arrow */}
+                    <defs>
+                        <marker id="arrow" markerWidth="4" markerHeight="4" refX="0" refY="2" orient="auto">
+                            <path d="M0,0 L0,4 L4,2 z" fill="#f59e0b" />
+                        </marker>
+                    </defs>
+                    <path d="M 100 90 Q 115 80 130 30" fill="none" stroke="#f59e0b" strokeWidth="1" markerEnd="url(#arrow)" strokeDasharray="2"/>
+                </svg>
+                <div className="absolute bottom-2 left-2 text-xs text-slate-400">شبیه‌سازی انتقال</div>
+            </div>
+        );
+
+        const SineVisual = () => (
+            <div className="w-full h-48 bg-white rounded-lg border border-slate-200 flex items-center justify-center overflow-hidden">
+                <svg viewBox="0 0 300 100" className="w-full h-full">
+                     {/* Axes */}
+                    <line x1="20" y1="50" x2="280" y2="50" stroke="#cbd5e1" strokeWidth="1" />
+                    <line x1="30" y1="10" x2="30" y2="90" stroke="#cbd5e1" strokeWidth="1" />
+                    
+                    {/* Max/Min Lines */}
+                    <line x1="30" y1="20" x2="280" y2="20" stroke="#94a3b8" strokeDasharray="4" strokeWidth="1" />
+                    <text x="5" y="25" fontSize="10" fill="#64748b">Max=3</text>
+                    <line x1="30" y1="80" x2="280" y2="80" stroke="#94a3b8" strokeDasharray="4" strokeWidth="1" />
+                    <text x="5" y="85" fontSize="10" fill="#64748b">Min=-1</text>
+                    
+                    {/* Sine Wave */}
+                    <path d="M 30 50 Q 92.5 -10 155 50 T 280 50" fill="none" stroke="#ef4444" strokeWidth="2" />
+                    
+                    {/* Period Indicator */}
+                    <line x1="30" y1="90" x2="280" y2="90" stroke="#3b82f6" strokeWidth="1" />
+                    <text x="150" y="98" fontSize="10" fill="#3b82f6" textAnchor="middle">T = π</text>
+                </svg>
+            </div>
+        );
+
+        const CircleVisual = () => (
+            <div className="w-full h-48 bg-white rounded-lg border border-slate-200 flex items-center justify-center">
+                 <svg viewBox="0 0 100 100" className="w-32 h-32">
+                    <circle cx="50" cy="50" r="40" stroke="#cbd5e1" strokeWidth="2" fill="none" />
+                    <line x1="10" y1="50" x2="90" y2="50" stroke="#cbd5e1" strokeWidth="1" />
+                    <line x1="50" y1="10" x2="50" y2="90" stroke="#cbd5e1" strokeWidth="1" />
+                    
+                    {/* Angles */}
+                    <circle cx="90" cy="50" r="2" fill="#3b82f6" />
+                    <text x="92" y="48" fontSize="8">0</text>
+                    
+                    <circle cx="50" cy="10" r="2" fill="#3b82f6" />
+                    <text x="52" y="8" fontSize="8">π/2</text>
+                </svg>
+            </div>
+        );
+
+        // ==========================================
+        // 🔹 COMPONENTS
+        // ==========================================
+
+        const Header = ({ setView }) => (
+            <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
+                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+                    {/* Logo Area */}
+                    <div 
+                        className="flex items-center gap-3 cursor-pointer" 
+                        onClick={() => setView('home')}
+                    >
+                        <div className="w-10 h-10 bg-brand-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-200">
+                            E
+                        </div>
+                        <div className="hidden md:block">
+                            <h1 className="text-lg font-bold text-gray-800">{siteConfig.brandNameFa}</h1>
+                            <p className="text-xs text-brand-600 font-medium">مرجع تخصصی امتحان نهایی و کنکور</p>
+                        </div>
+                    </div>
+
+                    {/* Nav Desktop */}
+                    <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
+                        <a href="#" className="hover:text-brand-600 transition">آزمون‌ها</a>
+                        <a href="#" className="hover:text-brand-600 transition">کلاس‌های آنلاین</a>
+                        <a href="#" className="hover:text-brand-600 transition text-brand-600">محصولات آموزشی</a>
+                        <a href="#" className="hover:text-brand-600 transition">مشاوره</a>
+                    </nav>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-3">
+                        <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-full relative">
+                            <ShoppingCart className="w-5 h-5" />
+                            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                        </button>
+                        <button className="hidden md:flex items-center gap-2 bg-brand-50 text-brand-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-100 transition">
+                            <User className="w-4 h-4" />
+                            <span>حساب کاربری</span>
+                        </button>
+                        <button className="md:hidden p-2 text-gray-500">
+                            <Menu className="w-6 h-6" />
+                        </button>
+                    </div>
+                </div>
+            </header>
+        );
+
+        const QuestionCard = ({ question, index }) => {
+            const [showSolution, setShowSolution] = useState(false);
+            const [stepIndex, setStepIndex] = useState(0);
+
+            const handleNextStep = () => {
+                if (stepIndex < question.solutionSteps.length) {
+                    setStepIndex(prev => prev + 1);
+                }
+            };
+
+            const reset = () => {
+                setShowSolution(false);
+                setStepIndex(0);
+            }
+
+            return (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                    {/* Header */}
+                    <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                            <span className="bg-brand-100 text-brand-700 text-xs font-bold px-2 py-1 rounded">سوال {index + 1}</span>
+                            <span className="text-xs text-gray-500 font-medium">{question.examDate}</span>
+                        </div>
+                        <div className="text-gray-400">
+                            <BookOpen className="w-4 h-4" />
+                        </div>
+                    </div>
+
+                    {/* Body */}
+                    <div className="p-6">
+                        <p className="text-gray-800 leading-relaxed font-medium mb-6 text-justify">
+                            {question.questionText}
+                        </p>
+
+                        {!showSolution ? (
+                            <button 
+                                onClick={() => setShowSolution(true)}
+                                className="w-full py-3 border-2 border-brand-100 text-brand-600 rounded-lg font-bold hover:bg-brand-50 transition flex items-center justify-center gap-2"
+                            >
+                                <Eye className="w-5 h-5" />
+                                مشاهده پاسخ تشریحی
+                            </button>
+                        ) : (
+                            <div className="fade-in bg-slate-50 rounded-lg p-4 border border-slate-200">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h4 className="font-bold text-gray-700 flex items-center gap-2">
+                                        <Layers className="w-4 h-4 text-accent-500" />
+                                        پاسخ گام‌به‌گام
+                                    </h4>
+                                    <button onClick={reset} className="text-xs text-red-500 hover:underline">بستن پاسخ</button>
+                                </div>
+
+                                <div className="space-y-4">
+                                    {question.solutionSteps.map((step, idx) => (
+                                        <div 
+                                            key={idx} 
+                                            className={`transition-all duration-500 ${idx <= stepIndex ? 'opacity-100 translate-y-0' : 'opacity-30 blur-[2px] translate-y-2'}`}
+                                        >
+                                            <div className="flex gap-3">
+                                                <div className="flex flex-col items-center">
+                                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${idx <= stepIndex ? 'bg-accent-500 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                                                        {idx + 1}
+                                                    </div>
+                                                    {idx < question.solutionSteps.length - 1 && (
+                                                        <div className="w-0.5 h-full bg-gray-200 my-1"></div>
+                                                    )}
+                                                </div>
+                                                <div className="pb-4">
+                                                    <h5 className={`text-sm font-bold mb-1 ${idx <= stepIndex ? 'text-gray-800' : 'text-gray-400'}`}>{step.title}</h5>
+                                                    <p className={`text-sm leading-relaxed ${idx <= stepIndex ? 'text-gray-600' : 'text-gray-300'}`}>{step.content}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {stepIndex < question.solutionSteps.length - 1 ? (
+                                    <button 
+                                        onClick={handleNextStep}
+                                        className="mt-4 w-full py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition shadow-lg shadow-brand-200 font-medium"
+                                    >
+                                        نمایش گام بعد 👇
+                                    </button>
+                                ) : (
+                                    <div className="mt-4 bg-green-100 text-green-700 p-3 rounded-lg text-center text-sm font-bold flex items-center justify-center gap-2">
+                                        <CheckCircle className="w-4 h-4" />
+                                        پایان راه حل
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const LessonView = ({ lesson, onBack }) => {
+            const [activeTab, setActiveTab] = useState('lesson'); // 'lesson' or 'questions'
+            
+            // Render specific visual based on lesson ID
+            const renderVisual = () => {
+                if (lesson.conceptImage === 'transform_svg') return <TransformationVisual />;
+                if (lesson.conceptImage === 'sine_svg') return <SineVisual />;
+                if (lesson.conceptImage === 'circle_svg') return <CircleVisual />;
+                return null;
+            };
+
+            return (
+                <div className="fade-in container mx-auto px-4 py-6 max-w-4xl">
+                    <button onClick={onBack} className="flex items-center text-gray-500 hover:text-brand-600 mb-4 transition">
+                        <ChevronLeft className="w-4 h-4 ml-1" />
+                        بازگشت به فصل‌ها
+                    </button>
+
+                    <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+                        {/* Title Section */}
+                        <div className="bg-brand-600 p-8 text-white relative overflow-hidden">
+                            <div className="relative z-10">
+                                <h2 className="text-2xl font-bold mb-2">{lesson.title}</h2>
+                                <p className="opacity-90">{lesson.conceptSummary}</p>
+                            </div>
+                            <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cube-coat.png')]"></div>
+                        </div>
+
+                        {/* Tabs */}
+                        <div className="flex border-b border-gray-200">
+                            <button 
+                                onClick={() => setActiveTab('lesson')}
+                                className={`flex-1 py-4 text-center font-bold text-sm transition ${activeTab === 'lesson' ? 'text-brand-600 border-b-2 border-brand-600 bg-brand-50' : 'text-gray-500 hover:bg-gray-50'}`}
+                            >
+                                <div className="flex items-center justify-center gap-2">
+                                    <BookOpen className="w-4 h-4" />
+                                    درسنامه و استراتژی
+                                </div>
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('questions')}
+                                className={`flex-1 py-4 text-center font-bold text-sm transition ${activeTab === 'questions' ? 'text-brand-600 border-b-2 border-brand-600 bg-brand-50' : 'text-gray-500 hover:bg-gray-50'}`}
+                            >
+                                <div className="flex items-center justify-center gap-2">
+                                    <LayoutDashboard className="w-4 h-4" />
+                                    نمونه سوالات امتحانی
+                                </div>
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-6 md:p-8 min-h-[400px]">
+                            {activeTab === 'lesson' && (
+                                <div className="space-y-8 fade-in">
+                                    {/* Visual Representation */}
+                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                        <div className="flex items-center gap-2 mb-3 text-brand-700 font-bold">
+                                            <Eye className="w-5 h-5" />
+                                            تصویرسازی مفهوم
+                                        </div>
+                                        {renderVisual()}
+                                    </div>
+
+                                    {/* Steps */}
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        {lesson.steps.map((step, idx) => (
+                                            <div key={idx} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition group">
+                                                <div className="w-8 h-8 rounded-lg bg-brand-100 text-brand-600 flex items-center justify-center font-bold mb-3 group-hover:scale-110 transition">
+                                                    {idx + 1}
+                                                </div>
+                                                <h4 className="font-bold text-gray-800 mb-2">{step.title}</h4>
+                                                <p className="text-sm text-gray-600 leading-relaxed">{step.text}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    
+                                    <div className="bg-yellow-50 border-r-4 border-yellow-400 p-4 rounded-lg">
+                                        <p className="text-sm text-yellow-800">
+                                            <span className="font-bold ml-1">نکته کلیدی:</span>
+                                            {lesson.conceptSummary}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'questions' && (
+                                <div className="fade-in">
+                                    <div className="mb-6 flex items-center justify-between">
+                                        <h3 className="font-bold text-gray-700">سوالات پرتکرار نهایی</h3>
+                                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">دوازدهم تجربی</span>
+                                    </div>
+                                    
+                                    {lesson.questions.map((q, idx) => (
+                                        <QuestionCard key={q.id} question={q} index={idx} />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [view, setView] = useState('home'); // home, course, chapter, lesson
+            const [selectedCourse, setSelectedCourse] = useState(null);
+            const [selectedChapter, setSelectedChapter] = useState(null);
+            const [selectedLesson, setSelectedLesson] = useState(null);
+
+            // Navigation Helpers
+            const goToCourse = (course) => {
+                setSelectedCourse(course);
+                setView('course');
+            };
+
+            const goToLesson = (chapter, lesson) => {
+                // Attach questions from chapter to lesson for display
+                const lessonQuestions = chapter.questions.filter(q => {
+                    // Logic to map specific questions to specific lessons
+                    // Q4 -> Transformation
+                    if (lesson.id === 'l_transform' && q.id === 'q4') return true;
+                    // Q5 -> Graphs
+                    if (lesson.id === 'l_graphs' && q.id === 'q5') return true;
+                    // Q6 -> Equations
+                    if (lesson.id === 'l_eq' && q.id === 'q6') return true;
+                    return false;
+                });
+                
+                const lessonWithQ = { ...lesson, questions: lessonQuestions };
+                setSelectedChapter(chapter);
+                setSelectedLesson(lessonWithQ);
+                setView('lesson');
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    <Header setView={setView} />
+                    
+                    <main className="flex-grow">
+                        {/* VIEW: HOME */}
+                        {view === 'home' && (
+                            <div className="fade-in">
+                                {/* Hero */}
+                                <div className="bg-gradient-to-br from-brand-600 to-brand-900 text-white pt-16 pb-24 rounded-b-[3rem] shadow-2xl relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-20 -mt-20"></div>
+                                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-500 opacity-20 rounded-full -ml-32 -mb-32 blur-3xl"></div>
+                                    
+                                    <div className="container mx-auto px-4 text-center relative z-10">
+                                        <span className="inline-block py-1 px-3 rounded-full bg-brand-500/30 text-brand-100 text-sm font-medium mb-4 backdrop-blur-sm border border-brand-400/30">
+                                            ویژه امتحانات نهایی ۱۴۰۳
+                                        </span>
+                                        <h1 className="text-3xl md:text-5xl font-extrabold mb-6 leading-tight">
+                                            {siteConfig.heroTitle}
+                                        </h1>
+                                        <p className="text-brand-100 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+                                            {siteConfig.heroSubtitle}
+                                        </p>
+                                        
+                                        {/* Mock Grade Selector */}
+                                        <div className="max-w-4xl mx-auto bg-white/10 backdrop-blur-md p-2 rounded-2xl border border-white/20 flex flex-wrap justify-center gap-2">
+                                            {['دهم', 'یازدهم', 'دوازدهم', 'کنکور'].map((grade, i) => (
+                                                <button 
+                                                    key={grade}
+                                                    onClick={() => i === 2 ? goToCourse(COURSES[0]) : null}
+                                                    className={`px-6 py-3 rounded-xl font-bold transition flex-1 min-w-[100px] ${i === 2 ? 'bg-white text-brand-700 shadow-lg scale-105 ring-2 ring-brand-300' : 'text-white hover:bg-white/10'}`}
+                                                >
+                                                    {grade}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Features / Demo Entry */}
+                                <div className="container mx-auto px-4 -mt-12 relative z-20 pb-20">
+                                    <div className="grid md:grid-cols-3 gap-6">
+                                        <div className="bg-white p-6 rounded-2xl shadow-xl border-t-4 border-accent-500 hover:-translate-y-1 transition duration-300">
+                                            <div className="w-12 h-12 bg-accent-100 rounded-lg flex items-center justify-center text-accent-600 mb-4">
+                                                <LayoutDashboard className="w-6 h-6" />
+                                            </div>
+                                            <h3 className="text-xl font-bold text-gray-800 mb-2">جزوات شب امتحانی</h3>
+                                            <p className="text-gray-500 text-sm leading-relaxed mb-4">خلاصه درس‌های نموداری و استراتژی حل سوالات پرتکرار.</p>
+                                            <button 
+                                                onClick={() => goToCourse(COURSES[0])} 
+                                                className="text-accent-600 font-bold text-sm flex items-center gap-1 hover:gap-2 transition"
+                                            >
+                                                مشاهده نمونه <ChevronLeft className="w-4 h-4"/>
+                                            </button>
+                                        </div>
+                                        {/* Other mock cards */}
+                                        <div className="bg-white p-6 rounded-2xl shadow-xl border-t-4 border-brand-500 opacity-70 grayscale hover:grayscale-0 hover:opacity-100 transition cursor-not-allowed">
+                                            <div className="w-12 h-12 bg-brand-100 rounded-lg flex items-center justify-center text-brand-600 mb-4">
+                                                <Play className="w-6 h-6" />
+                                            </div>
+                                            <h3 className="text-xl font-bold text-gray-800 mb-2">ویدیوهای نکته و تست</h3>
+                                            <p className="text-gray-500 text-sm leading-relaxed">تحلیل ویدیویی سوالات کنکور با اساتید برتر.</p>
+                                        </div>
+                                        <div className="bg-white p-6 rounded-2xl shadow-xl border-t-4 border-purple-500 opacity-70 grayscale hover:grayscale-0 hover:opacity-100 transition cursor-not-allowed">
+                                            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 mb-4">
+                                                <GraduationCap className="w-6 h-6" />
+                                            </div>
+                                            <h3 className="text-xl font-bold text-gray-800 mb-2">مشاوره تخصصی</h3>
+                                            <p className="text-gray-500 text-sm leading-relaxed">برنامه‌ریزی شخصی برای رتبه‌های برتر.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* VIEW: COURSE (Listing Chapters) */}
+                        {view === 'course' && (
+                            <div className="fade-in container mx-auto px-4 py-8">
+                                <button onClick={() => setView('home')} className="mb-6 flex items-center text-gray-500 hover:text-brand-600">
+                                    <ChevronLeft className="w-4 h-4 ml-1" />
+                                    بازگشت به خانه
+                                </button>
+                                
+                                <div className="flex items-center gap-4 mb-8">
+                                    <div className="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center text-brand-600 border border-gray-100">
+                                        <Calculator className="w-8 h-8" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-bold text-gray-800">{selectedCourse.title}</h2>
+                                        <p className="text-gray-500">پکیج کامل آمادگی امتحان نهایی و کنکور</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6 max-w-3xl">
+                                    {CHAPTERS.map(chapter => (
+                                        <div key={chapter.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition">
+                                            <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                                                <h3 className="font-bold text-gray-800">{chapter.title}</h3>
+                                                <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded border border-gray-200">{chapter.lessons.length} درس</span>
+                                            </div>
+                                            <div className="p-4 space-y-2">
+                                                <p className="text-sm text-gray-500 px-2 mb-4">{chapter.description}</p>
+                                                {chapter.lessons.map(lesson => (
+                                                    <div 
+                                                        key={lesson.id}
+                                                        onClick={() => goToLesson(chapter, lesson)}
+                                                        className="flex items-center justify-between p-3 rounded-lg hover:bg-brand-50 cursor-pointer group transition"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-xs">
+                                                                <Play className="w-3 h-3 fill-current" />
+                                                            </div>
+                                                            <span className="text-sm font-medium text-gray-700 group-hover:text-brand-700 transition">{lesson.title}</span>
+                                                        </div>
+                                                        <div className="text-brand-200 group-hover:text-brand-500">
+                                                            <ChevronLeft className="w-5 h-5" />
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* VIEW: LESSON */}
+                        {view === 'lesson' && selectedLesson && (
+                            <LessonView 
+                                lesson={selectedLesson} 
+                                onBack={() => setView('course')} 
+                            />
+                        )}
+
+                    </main>
+
+                    {/* Footer */}
+                    <footer className="bg-slate-900 text-slate-400 py-12 text-sm mt-auto">
+                        <div className="container mx-auto px-4 grid md:grid-cols-4 gap-8">
+                            <div className="col-span-1 md:col-span-2">
+                                <h4 className="text-white font-bold text-lg mb-4">{siteConfig.brandNameFa}</h4>
+                                <p className="leading-relaxed mb-6 max-w-md opacity-80">
+                                    ما در انرژی نوین تلاش می‌کنیم تا با ارائه بهترین منابع آموزشی و آزمون‌های استاندارد، مسیر موفقیت شما در کنکور و امتحانات نهایی را هموار کنیم.
+                                </p>
+                            </div>
+                            <div>
+                                <h5 className="text-white font-bold mb-4">دسترسی سریع</h5>
+                                <ul className="space-y-2">
+                                    <li><a href="#" className="hover:text-white transition">صفحه اصلی</a></li>
+                                    <li><a href="#" className="hover:text-white transition">فروشگاه</a></li>
+                                    <li><a href="#" className="hover:text-white transition">وبلاگ آموزشی</a></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h5 className="text-white font-bold mb-4">تماس با ما</h5>
+                                <ul className="space-y-2">
+                                    <li>تهران، میدان انقلاب</li>
+                                    <li>021-12345678</li>
+                                    <li>info@energynovin.com</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div className="border-t border-slate-800 mt-12 pt-8 text-center opacity-50">
+                            © 1403 تمام حقوق محفوظ است. طراحی نسخه دمو.
+                        </div>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
